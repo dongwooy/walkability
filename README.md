@@ -1,0 +1,1 @@
+#This repository is for analysis of impacts of topography on walkability by Dongwoo Yang. All copry rights reserved by Dongwoo Yang. Contact the author with dongwooyang@outlook.com if you have questions or suggestions.
