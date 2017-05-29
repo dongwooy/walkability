@@ -7,14 +7,14 @@ library(rvest)
 library(XML)
 library(RDSTK)
 
-add<-read.table("//home//dongwoo//Dropbox//==research//Workscores//address1_1.txt", header=TRUE)
+add<-read.table("//home//dongwoo//Dropbox//==research//Workscores//address1_2.txt", header=TRUE)
 add$score<-NA
 #add$fadd<-NA
 #add$lat<-0
 #add$lon<-0
 
 
-for (i in (4415:nrow(add))) {
+for (i in (1:nrow(add))) {
   tryCatch({
   a<-paste("http://www.walkscore.com/score/", as.character(add[i,1]), sep="")
   walkscore<-read_html(a, timeout=200)
