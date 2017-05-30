@@ -39,7 +39,7 @@ for (i in (1:nrow(add))) {
 }
 
 
-write.table(add, "/home/dongwoo/Dropbox/==research/Workscores/**********", sep="\t")
+write.table(add, "/home/dongwoo/Dropbox/==research/Workscores/walkscore2.csv", sep="\t")
 
 library(sp)
 cran_mat <- cbind(add$lon, add$lat)
