@@ -7,7 +7,7 @@ library(rvest)
 library(XML)
 library(RDSTK)
 
-add<-read.table("//home//dongwoo//Dropbox//==research//Workscores//address2.txt", header=TRUE)
+add<-read.table("//home//dongwoo//Dropbox//==research//Workscores//address3.txt", header=TRUE)
 add$score<-NA
 #add$fadd<-NA
 #add$lat<-0
@@ -39,7 +39,7 @@ for (i in (1:nrow(add))) {
 }
 
 
-write.table(add, "/home/dongwoo/Dropbox/==research/Workscores/walkscore2.csv", sep="\t")
+write.table(add, "/home/dongwoo/Dropbox/==research/Workscores/walkscore3.csv", sep="\t")
 
 library(sp)
 cran_mat <- cbind(add$lon, add$lat)
