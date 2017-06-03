@@ -14,7 +14,6 @@ add$score<-NA
 #add$lon<-0
 
 
-
 for (i in (1:nrow(add))) {
   tryCatch({
   a<-paste("http://www.walkscore.com/score/", as.character(add[i,1]), sep="")
