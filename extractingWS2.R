@@ -7,7 +7,7 @@ library(rvest)
 library(XML)
 library(RDSTK)
 
-add<-read.table("//home//dongwoo//Desktop//address1.csv", header=TRUE)
+add<-read.table("path", header=TRUE)
 add$score<-NA
 #add$fadd<-NA
 #add$lat<-0
@@ -21,8 +21,8 @@ for (i in (1:nrow(add))) {
   walkscore <- read_html(a, timeout=200)
   b <- html_nodes(walkscore, "img")
   c <- html_attr(b, "src")
-  c1 <- c[grep("//pp.walk.sc/badge/transit/",c)]
-  c2 <- gsub("//pp.walk.sc/badge/transit/score/","",c1)
+  c1 <- c[grep("//pp.walk.sc/badge/walk/",c)]
+  c2 <- gsub("//pp.walk.sc/badge/walk/score/","",c1)
   c3 <- c2[1]
   c4 <- gsub(".svg","",c3)
   c5 <- as.numeric(c4)
@@ -31,4 +31,4 @@ for (i in (1:nrow(add))) {
 )
 }
 
-write.table(add, "/home/dongwoo/Desktop/transitscore_ca1.csv", sep="\t")
+write.table(add, "path", sep="\t")
