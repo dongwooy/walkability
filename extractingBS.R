@@ -7,7 +7,7 @@ library(rvest)
 library(XML)
 library(RDSTK)
 
-add<-read.table("//home//dongwoo//Desktop//address.csv", header=TRUE)
+add<-read.table("//home//dongwoo//Desktop//address1_1.csv", header=TRUE)
 add$score<-NA
 #add$fadd<-NA
 #add$lat<-0
@@ -30,3 +30,6 @@ for (i in (1:nrow(add))) {
   },error=function(e){}
 )
 }
+
+
+write.table(add, "/home/dongwoo/Desktop/bikescore_ca1_1.csv", sep="\t")
