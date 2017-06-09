@@ -17,4 +17,10 @@ class(sids)
 sids_nbr <- poly2nb(sids, queen=FALSE)
 coords<-coordinates(sids)
 plot(sids)
-plot(sids_nbq, coords, add=T)
+plot(sids_nbr, coords, add=T)
+
+IDs <- row.names(as(sids, "data.frame"))
+
+sids_kn1 <- knn2nb(knearneigh(coords, k=1), row.name=IDs)
+plot(sids)
+plot(sids_kn1, coords, add=T)
