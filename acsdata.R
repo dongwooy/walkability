@@ -144,6 +144,56 @@ l7 <- merge(l6, slope, by="geoid")
 dataset <- l7[,c(1:2,24:29,31,36,96,156,161:163,164:166,169)]
 
 
-model1<-lm(data=dataset,
-           pwk~b19013_001+plat+pfemale+p65y+b25010_000_5+prenter+walk+transit+bike+slope)
+
+
+
+
+library(spdep)
+library(maptools)
+
+
+scag.poly <- readShapePoly("/home/dongwoo/Documents/gis/tract/ca/tl_2016_06_tract_scag_final_utm.shp")
+proj4string(scag.poly) <- CRS("+proj=utm +zone=11 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+scag.wgs <- spTransform(scag.poly, CRS("+init=epsg:4326"))
+
+library(leaflet)
+leaflet(scag.wgs)  %>%
+  addPolygons(stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5) %>%
+  addTiles()
+
+
+require(RColorBrewer)
+qpal<-colorQuantile("OrRd", scag.wgs@data$allscore_2, n=8)
+leaflet(scag.wgs) %>%
+  addPolygons(stroke = FALSE, fillOpacity = .8, smoothFactor = 0.2, color = ~qpal(allscore_2)
+  ) %>%
+  addTiles()
+
+
+
+
+###########   OLS   ############################################################
+
+model1<-lm(data=scag.wgs@data,
+           allscore_6~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
+           allscore12+allscore14+allscore15+allscore16+allscore17)
 summary(model1)
+           #pwk~b19013_001+plat+pfemale+p65y+b25010_000_5+prenter_sq+walk_sq+transit_sq+bike_sq+slope_ln
+
+
+
+###########   Spatial Dependency   #############################################
+list.queen<-poly2nb(scag.wgs, queen=TRUE)
+W<-nb2listw(list.queen, style="W", zero.policy=TRUE)
+W
+plot(W,coordinates(scag.wgs))
+coords<-coordinates(scag.wgs)
+W_dist<-dnearneigh(coords,0,1,longlat = FALSE)
+
+
+
+###########   SAR Model   ######################################################
+sar.scag<-lagsarlm(allscore_6~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
+                  allscore12+allscore14+allscore15+allscore16+allscore17
+                  ,data=scag.wgs@data, W)
+summary(sar.scag)
