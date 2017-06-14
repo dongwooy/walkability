@@ -193,7 +193,33 @@ W_dist<-dnearneigh(coords,0,1,longlat = FALSE)
 
 
 ###########   SAR Model   ######################################################
-sar.scag<-lagsarlm(allscore_6~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
+# Car
+sar.scag_car<-lagsarlm(allscore_1~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
                   allscore12+allscore14+allscore15+allscore16+allscore17
                   ,data=scag.wgs@data, W)
-summary(sar.scag)
+summary(sar.scag_car)
+
+# Transit
+sar.scag_transit<-lagsarlm(allscore_2~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
+                  allscore12+allscore14+allscore15+allscore16+allscore17
+                  ,data=scag.wgs@data, W)
+summary(sar.scag_transit)
+
+# Bicycle
+sar.scag_bike<-lagsarlm(allscore_5~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
+                  allscore12+allscore14+allscore15+allscore16+allscore17
+                  ,data=scag.wgs@data, W)
+summary(sar.scag_bike)
+
+# Walk
+sar.scag_walk<-lagsarlm(allscore_5~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
+                  allscore12+allscore14+allscore15+allscore16+allscore17
+                  ,data=scag.wgs@data, W)
+summary(sar.scag_walk)
+
+# Non-motorized
+scag.wgs@data$nm <- scag.wgs@data$allscore_5+scag.wgs@data$allscore_6
+sar.scag_nonmoto <-lagsarlm(nm~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
+                  allscore12+allscore14+allscore15+allscore16+allscore17
+                  ,data=scag.wgs@data, W)
+summary(sar.scag_nonmoto)
