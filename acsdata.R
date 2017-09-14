@@ -11,64 +11,53 @@ con <- dbConnect(drv, dbname = "acs",
                  user = "postgres", password = '6344vppv')
 
 
-# query the geoid data for SCAG from postgreSQL database
-geo_im <- dbGetQuery(con, "SELECT * from geo_ca WHERE geoid LIKE '%4000US06025%'
-                           AND geoname LIKE 'Census-Tract%'")
-geo_la <- dbGetQuery(con, "SELECT * from geo_ca WHERE geoid LIKE '%4000US06037%'
-                           AND geoname LIKE 'Census-Tract%'")
-geo_rs <- dbGetQuery(con, "SELECT * from geo_ca WHERE geoid LIKE '%4000US06065%'
-                           AND geoname LIKE 'Census-Tract%'")
-geo_oc <- dbGetQuery(con, "SELECT * from geo_ca WHERE geoid LIKE '%4000US06059%'
-                           AND geoname LIKE 'Census-Tract%'")
-geo_sb <- dbGetQuery(con, "SELECT * from geo_ca WHERE geoid LIKE '%4000US06071%'
-                           AND geoname LIKE 'Census-Tract%'")
-geo_vn <- dbGetQuery(con, "SELECT * from geo_ca WHERE geoid LIKE '%4000US06111%'
-                           AND geoname LIKE 'Census-Tract%'")
-geo_scag <- rbind(geo_im, geo_la, geo_rs, geo_oc, geo_sb, geo_vn)
+geo_scag <- dbGetQuery(con, "SELECT * from geo_ca
+                       WHERE (geoid LIKE '%4000US06025%' OR
+                              geoid LIKE '%4000US06037%' OR
+                              geoid LIKE '%4000US06065%' OR
+                              geoid LIKE '%4000US06059%' OR
+                              geoid LIKE '%4000US06071%' OR
+                              geoid LIKE '%4000US06111%') AND geoname LIKE 'Census-Tract%'")
 
+
+d <- c("seq028","seq059","seq005","seq002","seq103") #(transport, economic, demo, age, housing)
+e <- c("seq028_ca","seq059_ca","seq005_ca","seq002_ca","seq103_ca") #CA
+# getting transport, economic, demo, age, housing acs data for CA
+for (i in 1:5) {
+  y <- d[i]
+  c <- paste("SELECT","*","from",y,sep=" ")
+  assign(e[i], dbGetQuery(con, c))
+}
+
+seq028_scag <- merge(geo_scag, seq028_ca, by="logrecno") # join geoid table and seq028 table
+seq059_scag <- merge(geo_scag, seq059_ca, by="logrecno") # join geoid table and seq058 table
+seq005_scag <- merge(geo_scag, seq005_ca, by="logrecno") # join geoid table and seq005 table
+seq002_scag <- merge(geo_scag, seq002_ca, by="logrecno") # join geoid table and seq002 table
+seq103_scag <- merge(geo_scag, seq103_ca, by="logrecno") # join geoid table and seq103 table
 
 
 ##############   Means of Transportation   #####################################
+  # pmot1(% Car), pmot2(% Transit), pmot3(% Taxi)
+  # pmot4(% Motorcycle), pmot5(% Bike), pmot6(% Walk)
 
-# query transportation-related ACS SF data from postgresql database
-    seq028_ca <- dbGetQuery(con, "SELECT * from seq028")
-# join geoid table and seq028 table
-    seq028_scag <- merge(geo_scag, seq028_ca, by="logrecno")
-# get means of transportation data
     mot <- seq028_scag[,c(3:4,160:180)]
-    mot$pcar <- 100*(mot$b08301_002/mot$b08301_001)
-    mot$pcar[mot$pcar == "NaN"] <- 0
-    mot$ppt <- 100*(mot$b08301_010/mot$b08301_001)
-    mot$ppt[mot$ppt == "NaN"] <- 0
-    mot$ptx <- 100*(mot$b08301_016/mot$b08301_001)
-    mot$ptx[mot$ptx == "NaN"] <- 0
-    mot$pmc <- 100*(mot$b08301_017/mot$b08301_001)
-    mot$pmc[mot$pmc == "NaN"] <- 0
-    mot$pbc <- 100*(mot$b08301_018/mot$b08301_001)
-    mot$pbc[mot$pbc == "NaN"] <- 0
-    mot$pwk <- 100*(mot$b08301_018/mot$b08301_001)
-    mot$pwk[mot$pwk == "NaN"] <- 0
-
+    for (i in c(4, 12, 18:21)) {
+            a <- 100*(mot[,i]/mot[,3])
+            a[a == "NaN"] <- 0
+            mot <- cbind(mot,a)
+        }
+    for (j in 24:29) {
+            colnames(mot)[j] <- paste("pmot",j-23,sep="")
+    }
 
 
 ##############   Median Annual Household Income   ##############################
 
-# query economy-related ACS SF data from postgresql database
-    seq059_ca <- dbGetQuery(con, "SELECT * from seq059")
-# join geoid table and seq058 table
-    seq059_scag <- merge(geo_scag, seq059_ca, by="logrecno")
-# get median household income
-    mhi <- seq059_scag[,c(3:4,180)]
-
+    mhi <- seq059_scag[,c(3:4,180)] # get median household income
 
 
 ##############   % Hispanic/Latino Population   ################################
 
-# query Hispanic/Latino pop ACS SF data from postgresql database
-    seq005_ca <- dbGetQuery(con, "SELECT * from seq005")
-# join geoid table and seq005 table
-    seq005_scag <- merge(geo_scag, seq005_ca, by="logrecno")
-# get % Hispanic/Latino pop
     ethn <- seq005_scag[,c(3:4,10:12)]
     ethn$plat <- 100*(ethn$b03001_003/ethn$b03001_001)
     ethn$plat[ethn$plat == "NaN"] <- 0
@@ -76,10 +65,6 @@ geo_scag <- rbind(geo_im, geo_la, geo_rs, geo_oc, geo_sb, geo_vn)
 
 ##############   % Population by Gender and Age  ###############################
 
-# Age ACS SF data from postgresql database
-    seq002_ca <- dbGetQuery(con, "SELECT * from seq002")
-# join geoid table and seq002 table
-    seq002_scag <- merge(geo_scag, seq002_ca, by="logrecno")
 # get % female and senior pop
     gender <- seq002_scag[,c(3:4,1:58)]
     gender$pfemale <- 100*(gender$b01001_026/gender$b01001_001)
@@ -96,10 +81,6 @@ geo_scag <- rbind(geo_im, geo_la, geo_rs, geo_oc, geo_sb, geo_vn)
 
 ##############   Housing Tenure / Avg. Household Size  #########################
 
-# Housing Unit ACS SF data from postgresql database
-    seq103_ca <- dbGetQuery(con, "SELECT * from seq103")
-# join geoid table and seq103 table
-    seq103_scag <- merge(geo_scag, seq103_ca, by="logrecno")
 # get % renter occupied and average HH size
     tenure <- seq103_scag[,c(3:4,14:16,106)]
     tenure$prenter <- 100*(tenure$b25003_003/tenure$b25003_001)
@@ -194,28 +175,33 @@ W_dist<-dnearneigh(coords,0,1,longlat = FALSE)
 
 ###########   SAR Model   ######################################################
 # Car
-sar.scag_car<-lagsarlm(allscore_1~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
-                  allscore12+allscore14+allscore15+allscore16+allscore17
-                  ,data=scag.wgs@data, W)
+sar.scag_car<-lagsarlm(acs_pcar~acs_slope+
+                                acs_walksc+acs_tran_2+
+                                acs_mhi+acs_plat+acs_pfemal+acs_p65y+acs_prente+acs_hhsize
+                       ,data=scag.wgs@data, W)
 summary(sar.scag_car)
 
 # Transit
-sar.scag_transit<-lagsarlm(allscore_2~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
-                  allscore12+allscore14+allscore15+allscore16+allscore17
-                  ,data=scag.wgs@data, W)
+sar.scag_transit<-lagsarlm(acs_ppt~acs_slope+
+                                acs_walksc+acs_tran_2+
+                                acs_mhi+acs_plat+acs_pfemal+acs_p65y+acs_prente+acs_hhsize
+                       ,data=scag.wgs@data, W)
 summary(sar.scag_transit)
 
 # Bicycle
-sar.scag_bike<-lagsarlm(allscore_5~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
-                  allscore12+allscore14+allscore15+allscore16+allscore17
-                  ,data=scag.wgs@data, W)
+sar.scag_bike<-lagsarlm(acs_pbc~acs_slope+
+                                acs_walksc+acs_tran_2+
+                                acs_mhi+acs_plat+acs_pfemal+acs_p65y+acs_prente+acs_hhsize
+                       ,data=scag.wgs@data, W)
 summary(sar.scag_bike)
 
 # Walk
-sar.scag_walk<-lagsarlm(allscore_5~allscore_7+allscore_8+allscore_9+allscore10+allscore11+
-                  allscore12+allscore14+allscore15+allscore16+allscore17
-                  ,data=scag.wgs@data, W)
+sar.scag_walk<-lagsarlm(acs_pwk~acs_slope+
+                                acs_walksc+acs_tran_2+
+                                acs_mhi+acs_plat+acs_pfemal+acs_p65y+acs_prente+acs_hhsize
+                       ,data=scag.wgs@data, W)
 summary(sar.scag_walk)
+
 
 # Non-motorized
 scag.wgs@data$nm <- scag.wgs@data$allscore_5+scag.wgs@data$allscore_6
